@@ -10,7 +10,13 @@ function MyApp({ Component, pageProps }) {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        router.push('/login');
+        if (router.pathname !== '/' && router.pathname !== '/login' && router.pathname !== '/signup') {
+          router.push('/');
+        }
+      } else {
+        if (router.pathname === '/' || router.pathname === '/login' || router.pathname === '/signup') {
+          router.push('/home');
+        }
       }
     };
 
@@ -18,14 +24,18 @@ function MyApp({ Component, pageProps }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        router.push('/login');
+        router.push('/');
+      } else if (event === 'PASSWORD_RECOVERY' || event === 'USER_UPDATED') {
+        if (router.pathname === '/' || router.pathname === '/login' || router.pathname === '/signup') {
+          router.push('/home');
+        }
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   return <Component {...pageProps} />;
 }
